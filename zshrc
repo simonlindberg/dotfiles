@@ -36,6 +36,25 @@ zstyle ':vcs_info:git:*' formats '%b'
 precmd_functions+=(set_prompt)
 
 #########################################
+############# Prompt refresh ############
+#########################################
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd set_prompt
+zstyle ':vcs_info:git:*' formats '%b'
+
+# 3. Add auto-refreshing prompt (ONLY for interactive shells)
+if [[ -o interactive ]]; then
+  TMOUT=1
+  TRAPALRM() {
+    zle reset-prompt
+  }
+  zle -N TRAPALRM
+fi
+
+#########################################
+
+
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
