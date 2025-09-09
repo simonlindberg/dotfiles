@@ -44,11 +44,35 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 zstyle ':vcs_info:git:*' formats '%b'
 
-# 3. Add auto-refreshing prompt 
+# 3. Add auto-refreshing prompt with autocomplete preservation
 if [[ -o interactive ]]; then
-  TMOUT=2 # Note, this is ruining the autocomplete menu, so increase it to whatever makes you feel good!
+  TMOUT=1
+
+  # Store and restore completion menu state
+  local completion_menu_buffer=""
+  local completion_menu_choices=""
+
+  function store_menu_state() {
+    if [[ "$COMPSTATE[insert]" == "menu" ]]; then
+      completion_menu_buffer="$BUFFER"
+      completion_menu_choices="${(pj:\n:)${(@f)$(zle list-choices 2>/dev/null)}}"
+    else
+      completion_menu_buffer=""
+      completion_menu_choices=""
+    fi
+  }
+
+  function restore_menu_state() {
+    if [[ -n "$completion_menu_buffer" && -n "$completion_menu_choices" ]]; then
+      BUFFER="$completion_menu_buffer"
+      zle list-choices
+    fi
+  }
+
   TRAPALRM() {
+    store_menu_state
     zle reset-prompt
+    restore_menu_state
   }
   zle -N TRAPALRM
 fi
