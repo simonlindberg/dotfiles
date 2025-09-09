@@ -161,7 +161,21 @@ function gdf() {
   fi
   git diff -- "$file"
 }
-compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}");staged)"' gdf
+
+# Custom completion: only offer 'staged' if there are staged files
+function _gdf_completion {
+  local -a files
+  local -a opts
+  files=("${(@f)$(git status --short | awk '{print NR ":" substr($0,4)}')}")
+  if git diff --cached --quiet; then
+    # No staged changes
+    opts=("${files[@]}")
+  else
+    opts=("${files[@]}" "staged")
+  fi
+  _arguments "1: :(${(j: :)opts})"
+}
+compdef _gdf_completion gdf
 
 function gre() {
   local idx=$1
