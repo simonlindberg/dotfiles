@@ -85,6 +85,8 @@ fi
 #     #     #       #        #     #  #          #     #     #        #  #              #
  #####     ###      #        #     #  #######   ###    #     #   #####   #######   #####
 
+
+
 # Add indexed git add function: 'gad <n>' adds the nth file from 'git status --short'
 # If 'p' is given as the second argument, runs 'git add -p' on the file.
 function gad() {
