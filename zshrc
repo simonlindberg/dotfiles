@@ -194,6 +194,28 @@ function gre() {
 }
 compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}"))"' gre
 
+function gls() {
+  # Reserve 2 lines for prompt, etc.
+  local log_lines=$(( $(tput lines) - 2 ))
+  ((log_lines < 1)) && log_lines=1
+
+  git log --oneline --graph --decorate --color=always \
+    --pretty=format:'%C(yellow)%h%C(reset) %C(blue)%ad%C(reset) %C(auto)%d%C(reset) %C(white)%s%C(reset) %C(green)[%an]%C(reset)' \
+    --date=short -$log_lines | head -n $log_lines
+}
+compdef _git gls
+
+function glsa() {
+  # Reserve 2 lines for prompt, etc.
+  local log_lines=$(( $(tput lines) - 2 ))
+  ((log_lines < 1)) && log_lines=1
+
+  git log --oneline --all --graph --decorate --color=always \
+    --pretty=format:'%C(yellow)%h%C(reset) %C(blue)%ad%C(reset) %C(auto)%d%C(reset) %C(white)%s%C(reset) %C(green)[%an]%C(reset)' \
+    --date=short -$log_lines | head -n $log_lines
+}
+compdef _git glsa
+
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
