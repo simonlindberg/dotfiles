@@ -44,9 +44,9 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 zstyle ':vcs_info:git:*' formats '%b'
 
-# 3. Add auto-refreshing prompt (ONLY for interactive shells)
+# 3. Add auto-refreshing prompt 
 if [[ -o interactive ]]; then
-  TMOUT=1
+  TMOUT=2 # Note, this is ruining the autocomplete menu, so increase it to whatever makes you feel good!
   TRAPALRM() {
     zle reset-prompt
   }
@@ -66,18 +66,29 @@ fi
 function gad() {
   local idx=$1
   local mode=$2
-  if [[ -z $idx || ( $idx != "p" && ! $idx =~ ^[0-9]+$ ) ]]; then
-    echo "Usage: gad <index> [p]"
+  local file
+
+  if [[ -z $idx ]]; then
+    echo "Usage: gad <index[:filename]> [p]"
     return 1
   fi
 
-  if [[ $idx == "p" ]]; then
+  # Support index:filename or just index, but always use index to get filename
+  if [[ $idx =~ ^([0-9]+): ]]; then
+    idx="${match[1]}"
+  elif [[ $idx == "p" ]]; then
     git add -p
     return
+  elif [[ $idx =~ ^[0-9]+$ ]]; then
+    # idx is already set
+    :
+  else
+    echo "Usage: gad <index[:filename]> [p]"
+    return 1
   fi
 
-  local file
   file=$(git status --short | awk 'NR=='"$idx"' {print substr($0,4)}')
+
   if [[ -z $file ]]; then
     echo "No file at index $idx"
     return 1
@@ -93,13 +104,13 @@ function gad() {
 }
 compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}");p) 2: :(p)"' gad
 
-
-# Add indexed git diff function: 'gdf <n>' diffs the nth file from 'git status --short'
-# Also supports 'gdf staged' or 'gdf s' for staged diff
 function gdf() {
   local arg=$1
+  local idx
+  local file
+
   if [[ -z $arg ]]; then
-    echo "Usage: gdf <index>|staged"
+    echo "Usage: gdf <index[:filename]>|staged"
     return 1
   fi
 
@@ -108,39 +119,56 @@ function gdf() {
     return
   fi
 
-  if [[ ! $arg =~ ^[0-9]+$ ]]; then
-    echo "Usage: gdf <index>|staged"
+  # Support index:filename or just index, but always use index to get filename
+  if [[ $arg =~ ^([0-9]+): ]]; then
+    idx="${match[1]}"
+  elif [[ $arg =~ ^[0-9]+$ ]]; then
+    idx="$arg"
+  else
+    echo "Usage: gdf <index[:filename]>|staged"
     return 1
   fi
 
-  local file
-  file=$(git status --short | awk 'NR=='"$arg"' {print substr($0,4)}')
+  file=$(git status --short | awk 'NR=='"$idx"' {print substr($0,4)}')
+
   if [[ -z $file ]]; then
-    echo "No file at index $arg"
+    echo "No file at index $idx"
     return 1
   fi
   git diff -- "$file"
 }
 compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}");staged)"' gdf
 
-# Add indexed git restore function: 'gre <n>' restores the nth file from 'git status --short'
 function gre() {
   local idx=$1
-  if [[ -z $idx || ! $idx =~ ^[0-9]+$ ]]; then
-    echo "Usage: gre <index>"
+  local file
+
+  if [[ -z $idx ]]; then
+    echo "Usage: gre <index[:filename]>"
     return 1
   fi
-  local file
+
+  # Support index:filename or just index, but always use index to get filename
+  if [[ $idx =~ ^([0-9]+): ]]; then
+    idx="${match[1]}"
+  elif [[ $idx =~ ^[0-9]+$ ]]; then
+    # idx is already set
+    :
+  else
+    echo "Usage: gre <index[:filename]>"
+    return 1
+  fi
+
   file=$(git status --short | awk 'NR=='"$idx"' {print substr($0,4)}')
+
   if [[ -z $file ]]; then
     echo "No file at index $idx"
     return 1
   fi
-  git restore -- "$file"
+  git restore --staged --worktree -- "$file"
   echo "Restored: $file"
 }
 compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}"))"' gre
-#########################################
 
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
