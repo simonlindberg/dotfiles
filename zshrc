@@ -179,10 +179,13 @@ compdef _gdf_completion gdf
 
 function gre() {
   local idx=$1
+  local target=$2
   local file
+  local staged=0
+  local unstaged=0
 
   if [[ -z $idx ]]; then
-    echo "Usage: gre <index[:filename]>"
+    echo "Usage: gre <index[:filename]> [staged|worktree|all]"
     return 1
   fi
 
@@ -193,7 +196,7 @@ function gre() {
     # idx is already set
     :
   else
-    echo "Usage: gre <index[:filename]>"
+    echo "Usage: gre <index[:filename]> [staged|worktree|all]"
     return 1
   fi
 
@@ -203,10 +206,60 @@ function gre() {
     echo "No file at index $idx"
     return 1
   fi
-  git restore --staged --worktree -- "$file"
-  echo "Restored: $file"
+
+  # Check status: staged if first column is not ' ' or '?', unstaged if second column is not ' '
+  local status_line
+  status_line=$(git status --short | awk 'NR=='"$idx"'')
+  [[ ${status_line[1,1]} != " " && ${status_line[1,1]} != "?" ]] && staged=1
+  [[ ${status_line[2,1]} != " " ]] && unstaged=1
+
+  # Accept all variants for staged, worktree, all
+  local target_lc="${target:l}"
+  if [[ $target_lc == (staged|stage|stag|sta|st|s) ]]; then
+    target_lc="staged"
+  elif [[ $target_lc == (worktree|work|wtree|wt|w) ]]; then
+    target_lc="worktree"
+  elif [[ $target_lc == (all|a) ]]; then
+    target_lc="all"
+  fi
+
+  if (( staged && unstaged )); then
+    if [[ $target_lc == "staged" ]]; then
+      git restore --staged -- "$file"
+      echo "Restored staged: $file"
+    elif [[ $target_lc == "worktree" ]]; then
+      git restore --worktree -- "$file"
+      echo "Restored worktree: $file"
+    elif [[ $target_lc == "all" ]]; then
+      git restore --staged --worktree -- "$file"
+      echo "Restored staged and worktree: $file"
+    else
+      echo "File has changes in both staged and worktree. Specify [staged|worktree|all]."
+      return 1
+    fi
+  elif (( staged )); then
+    git restore --staged -- "$file"
+    echo "Restored staged: $file"
+  elif (( unstaged )); then
+    git restore --worktree -- "$file"
+    echo "Restored worktree: $file"
+  else
+    echo "No changes to restore for: $file"
+    return 1
+  fi
 }
-compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}"))"' gre
+# Completion: offer staged/worktree/all (with aliases) if both, else nothing
+function _gre_completion {
+  local -a files
+  files=("${(@f)$(git status --short | awk '{print NR ":" substr($0,4)}')}")
+  local -a targets
+  targets=(staged worktree all)
+  local expl
+  _arguments -C \
+    "1:modified file:(${(j: :)files})" \
+    "2:target:(${(j: :)targets})"
+}
+compdef _gre_completion gre
 
 function gls() {
   # Reserve 2 lines for prompt, etc.
