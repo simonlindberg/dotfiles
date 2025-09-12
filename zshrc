@@ -153,7 +153,19 @@ function gad() {
     echo "Added: $file"
   fi
 }
-compdef '_arguments "1: :($(git status --short | awk "{print NR \":\" substr(\$0,4)}");p) 2: :(p)"' gad
+
+# Completion: offer staged/worktree/all (with aliases) if both, else nothing
+function _gad_completion {
+  local -a files
+  files=("${(@f)$(git status --short | awk '{print NR ":" substr($0,4)}')}")
+  local -a modes
+  modes=(p)
+  local expl
+  _arguments -C \
+    "1:modified file:(${(j: :)files})" \
+    "2:mode:(${(j: :)modes})"
+}
+compdef _gad_completion gad
 
 function gdf() {
   local arg=$1
