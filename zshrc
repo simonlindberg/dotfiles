@@ -238,7 +238,7 @@ function gre() {
   local status_line
   status_line=$(git status --short | awk 'NR=='"$idx"'')
   [[ ${status_line[1,1]} != " " && ${status_line[1,1]} != "?" ]] && staged=1
-  [[ ${status_line[2,1]} != " " ]] && unstaged=1
+  [[ ${status_line[2,2]} != " " ]] && unstaged=1
 
   # Accept all variants for staged, worktree, all
   local target_lc="${target:l}"
