@@ -1,7 +1,10 @@
 #!/bin/zsh
 
 
-# Move current .zshrc to live.
+# Move current files to live.
 cp --backup=numbered "zshrc" "$HOME/.zshrc"
+cp --backup=numbered "nanorc" "$HOME/.nanorc"
 
-rm -f $HOME/.zshrc.\~??\~  # Remove older backups, >10
+# Remove older backups, >10
+rm -f $HOME/.zshrc.~??~ || true
+rm -f $HOME/.nanorc.~??~ || true
