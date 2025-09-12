@@ -85,7 +85,33 @@ fi
 #     #     #       #        #     #  #          #     #     #        #  #              #
  #####     ###      #        #     #  #######   ###    #     #   #####   #######   #####
 
+unalias gc
+function gc() {
+  local first_arg="${1:l}"
+  if [[ "$first_arg" == (amend|amen|ame|am|a) ]]; then
+    git commit --amend
+  elif [[ $# -gt 0 ]]; then
+    git commit -m "$*"
+  else
+    git commit
+  fi
+}
+compdef '_arguments "1: :(amend amen ame am a as)" "*:commit message:_message"' gc
 
+function gamend() {
+  git commit --amend "$@"
+}
+compdef _git gamend
+
+function gpush() {
+  git push origin "$@"
+}
+compdef _git gpush
+
+function gpushf() {
+  git push --force origin "$@"
+}
+compdef _git gpushf
 
 # Add indexed git add function: 'gad <n>' adds the nth file from 'git status --short'
 # If 'p' is given as the second argument, runs 'git add -p' on the file.
