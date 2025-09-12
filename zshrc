@@ -36,15 +36,14 @@ function set_prompt() {
 }
 
 # Configure vcs_info for git branch display
-zstyle ':vcs_info:git:*' formats '%b'
-precmd_functions+=(set_prompt)
+zstyle ':vcs_info:*' formats '%b'
 
 # Refresh the prompt
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
-zstyle ':vcs_info:git:*' formats '%b'
 
-# 3. Add auto-refreshing prompt with autocomplete preservation
+
+# Add auto-refreshing prompt with autocomplete preservation
 if [[ -o interactive ]]; then
   TMOUT=1
 
@@ -77,13 +76,13 @@ if [[ -o interactive ]]; then
   zle -N TRAPALRM
 fi
 
- #####     ###   #######        #     #         ###       #      #####   #######   #####
-#           #       #          # #    #          #       # #    #        #        #
-#           #       #         #   #   #          #      #   #   #        #        #
-#  ####     #       #        #     #  #          #     #     #   #####   #######   #####
-#     #     #       #        #######  #          #     #######        #  #              #
-#     #     #       #        #     #  #          #     #     #        #  #              #
- #####     ###      #        #     #  #######   ###    #     #   #####   #######   #####
+ #####     ###   #######          #     #         ###       #      #####   #######   #####
+#           #       #            # #    #          #       # #    #        #        #
+#           #       #           #   #   #          #      #   #   #        #        #
+#  ####     #       #          #     #  #          #     #     #   #####   #######   #####
+#     #     #       #          #######  #          #     #######        #  #              #
+#     #     #       #          #     #  #          #     #     #        #  #              #
+ #####     ###      #          #     #  #######   ###    #     #   #####   #######   #####
 
 unalias gc
 function gc() {
@@ -311,6 +310,12 @@ function glsa() {
 }
 compdef _git glsa
 
+
+#   #  ###   ####   ####
+## ##   #   #      #
+# # #   #    ####  #
+#   #   #        # #
+#   #  ###   ####   ####
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
