@@ -32,7 +32,7 @@ function set_prompt() {
     git_info=" %F{magenta}(${vcs_info_msg_0_})%f"
   fi
 
-  PROMPT="%F{yellow}%*%f %F{blue}%n%f:%F{cyan}%~%f${git_info} ${prompt_color}\$%f "
+  PROMPT="%F{yellow}%D{%H:%M:%S}%f %F{blue}%n%f:%F{cyan}%~%f${git_info} ${prompt_color}\$%f "
 }
 
 # Configure vcs_info for git branch display
